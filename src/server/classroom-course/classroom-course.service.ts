@@ -2,77 +2,42 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClassroomListEntity } from '../../entities/classroom-list.entity';
 import { ClassroomCourseFindOneDto } from './dto/classroomCourseFindOneDto';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { TechCourseEntity } from '../../entities/tech_course.entity';
 import { HasCourseWeekDayList } from './dto/HasCourseWeekDayList';
 import { CalendarDto } from './dto/CalendarDto';
 import { EmptyClassroomDto } from './dto/EmptyClassroom';
+import { ClassroomCourseEntity } from 'src/entities/classroomCourse.entity';
 
 @Injectable()
 export class ClassroomCourseService {
   constructor(
     @InjectRepository(ClassroomListEntity)
     private classroomListMapper: Repository<ClassroomListEntity>,
-    @InjectRepository(TechCourseEntity)
-    private techCourseMapper: Repository<TechCourseEntity>,
-  ) {}
+    @InjectRepository(ClassroomCourseEntity)
+    private classroomCourseMapper: Repository<ClassroomCourseEntity>,
+  ) { }
 
   find(classroomCourseFindOneDto: ClassroomCourseFindOneDto) {
     const { classroom, week, weekDay } = classroomCourseFindOneDto;
-    const sqlStr = `select
-                            c.id,
-                            j.courseSection,
-                            j.courseTeacher,
-                            j.courseName,
-                            j.courseClass,
-                            j.courseWeek,
-                            j.coursePosition,
-                            j.courseWeekDay
-                            from
-                            tech_course c
-                            cross join json_table(
-                                c.courseList,
-                                "$.*" columns(
-                                    courseSection varchar(50) path "$.courseSection",
-                                    courseTeacher VARCHAR(50) PATH "$.courseTeacher",
-                                    courseName VARCHAR(255) PATH "$.courseName",
-                                    courseClass VARCHAR(255) PATH "$.courseClass",
-                                    courseWeek VARCHAR(50) PATH "$.courseWeek",
-                                    coursePosition VARCHAR(255) PATH "$.coursePosition",
-                                    courseWeekDay VARCHAR(50) PATH "$.courseWeekDay"
-                                    )
-                                ) j where j.coursePosition = '${classroom}' and c.week = '${week}' and c.weekDay = '${weekDay}'`;
-    return this.techCourseMapper.query(sqlStr);
+    return this.classroomCourseMapper.findOne({
+      where: {
+        coursePosition: classroom,
+        week: week,
+        weekDay: weekDay,
+      },
+    });
   }
 
   async hasCourseWeekDayList(hasCourseWeekDayListDTO: HasCourseWeekDayList) {
     const { classroom, week } = hasCourseWeekDayListDTO;
-    const sqlStr = `select
-                            c.id,
-                            c.week,
-                            j.courseSection,
-                            j.courseTeacher,
-                            j.courseName,
-                            j.courseClass,
-                            j.courseWeek,
-                            j.coursePosition,
-                            j.courseWeekDay
-                            from
-                            tech_course c
-                            cross join json_table(
-                                c.courseList,
-                                "$.*" columns(
-                                    courseSection varchar(50) path "$.courseSection",
-                                    courseTeacher VARCHAR(50) PATH "$.courseTeacher",
-                                    courseName VARCHAR(255) PATH "$.courseName",
-                                    courseClass VARCHAR(255) PATH "$.courseClass",
-                                    courseWeek VARCHAR(50) PATH "$.courseWeek",
-                                    coursePosition VARCHAR(255) PATH "$.coursePosition",
-                                    courseWeekDay VARCHAR(50) PATH "$.courseWeekDay"
-                                    )
-                                ) j where j.coursePosition = '${classroom}' and c.week = '${week}'`;
-    let result: any[] = await this.techCourseMapper.query(sqlStr);
-    return [...new Set(result.map((item) => item.courseWeekDay))];
+    let result: ClassroomCourseEntity[] = await this.classroomCourseMapper.find({
+      where: {
+        coursePosition: classroom,
+        week: week,
+      },
+    });
+    return result.filter((item) => item.courseList !== "{}").map(d => d.weekDay);
   }
 
   allClassList() {
@@ -81,38 +46,14 @@ export class ClassroomCourseService {
 
   async calendar(calendarDto: CalendarDto) {
     let { classroom, weekList } = calendarDto;
-    const jsWeekList =
-      '(' +
-      JSON.parse(weekList)
-        .map((item: any) => `'${item}'`)
-        .join(',') +
-      ')';
-    console.log('jsWeekList', jsWeekList);
-    const sqlStr = `select
-                            c.id,
-                            c.week,
-                            j.courseSection,
-                            j.courseTeacher,
-                            j.courseName,
-                            j.courseClass,
-                            j.courseWeek,
-                            j.coursePosition,
-                            j.courseWeekDay
-                            from
-                            tech_course c
-                            cross join json_table(
-                                c.courseList,
-                                "$.*" columns(
-                                    courseSection varchar(50) path "$.courseSection",
-                                    courseTeacher VARCHAR(50) PATH "$.courseTeacher",
-                                    courseName VARCHAR(255) PATH "$.courseName",
-                                    courseClass VARCHAR(255) PATH "$.courseClass",
-                                    courseWeek VARCHAR(50) PATH "$.courseWeek",
-                                    coursePosition VARCHAR(255) PATH "$.coursePosition",
-                                    courseWeekDay VARCHAR(50) PATH "$.courseWeekDay"
-                                    )
-                                ) j where j.coursePosition = '${classroom}' and c.week in ${jsWeekList}`;
-    const result: any[] = await this.techCourseMapper.query(sqlStr);
+    let result: ClassroomCourseEntity[] = await this.classroomCourseMapper.find({
+      where: {
+        coursePosition: classroom,
+        week: In(JSON.parse(weekList)),
+      }
+    });
+    result = result.filter(d => d.courseList !== '{}');
+    result.forEach(d => d.courseList = JSON.parse(d.courseList));
     return result;
   }
 
@@ -174,3 +115,4 @@ export class ClassroomCourseService {
     return data;
   }
 }
+

@@ -1,11 +1,11 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('class_course')
-export class StudentCourseEntity {
+@Entity('classroom_course')
+export class ClassroomCourseEntity {
   @PrimaryGeneratedColumn()
   id: number;
   @Column()
-  className: string;
+  coursePosition: string;
   @Column()
   week: string;
   @Column()
@@ -13,4 +13,3 @@ export class StudentCourseEntity {
   @Column()
   courseList: string;
 }
-

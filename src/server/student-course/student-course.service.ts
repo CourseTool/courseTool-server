@@ -32,19 +32,21 @@ export class StudentCourseService {
     const courseData =
       await this.studentCourseMapper.findOneBy(courseFindOneDTO);
     this.redisService.setex(cacheKey, Time.ONE_HOUR * 4, courseData);
-    return cacheData;
+    return courseData;
   }
 
   async hasCourseWeekDayList(hasCourseWeekDayListDTO: HasCourseWeekDayList) {
+    console.log(111, hasCourseWeekDayListDTO);
     const result = await this.studentCourseMapper
       .createQueryBuilder('class_course')
-      .select('class_course.weekDay')
-      .where('className = :className', {
-        className: hasCourseWeekDayListDTO.className,
-      })
-      .andWhere('week = :week', { week: hasCourseWeekDayListDTO.week })
-      .andWhere('courseList != :courseList', { courseList: '{}' })
+      .select('class_course.*')
+      // .where('className = :className', {
+      //   className: hasCourseWeekDayListDTO.className,
+      // })
+      // .andWhere('week = :week', { week: hasCourseWeekDayListDTO.week })
+      // .andWhere('courseList != :courseList', { courseList: '{}' })
       .getMany();
+    console.log(result);
     return result.map((item) => item.weekDay);
   }
 

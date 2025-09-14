@@ -1,7 +1,17 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { CommonService } from './common.service';
 import { ApiTags } from '@nestjs/swagger';
 import { DormAnswerData } from './dto/DormAnswerData';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { join } from 'path';
 
 @ApiTags('公共接口')
 @Controller('common')
@@ -62,4 +72,20 @@ export class CommonController {
   advertisementImg() {
     return this.commonService.advertisementImg();
   }
+
+  // @Post('img')
+  // @UseInterceptors(
+  //   FileInterceptor('file', {
+  //     storage: diskStorage({
+  //       destination: join(__dirname, '../images'),
+  //       filename: (req, file, cb) => {
+  //         cb(null, file.originalname);
+  //       },
+  //     }),
+  //   }),
+  // )
+  // uploadImg(@UploadedFile() imgData: any) {
+  //   console.log('imgData', imgData);
+  //   return this.commonService.uploadImg(imgData);
+  // }
 }

@@ -8,21 +8,20 @@ import { SetCacheHeader } from './utils/SetCacheHeader';
 import { TeacherCourseModule } from './server/teacher-course/teacher-course.module';
 import { ClassroomCourseModule } from './server/classroom-course/classroom-course.module';
 import { CommunityModule } from './server/community/community.module';
+import { RequestTimeMiddleware } from './middleware/calcApiTimeMiddleware';
+import { AIModule } from './server/ai/ai.module';
+import { ECardModule } from './server/e-card/e-card.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: '114.132.175.70',
-      // host: 'localhost',
+      host: '81.68.174.21',
       port: 3306,
-      username: 'Course',
-      password: 'NRNdLmpmWpx6jMRT',
-      // username: 'root',
-      // password: '20050703',
+      username: 'course',
+      password: '123456',
       database: 'course',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      // synchronize: true,
       autoLoadEntities: true,
       cache: true,
     }),
@@ -31,6 +30,8 @@ import { CommunityModule } from './server/community/community.module';
     TeacherCourseModule,
     ClassroomCourseModule,
     CommunityModule,
+    AIModule,
+    ECardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -38,5 +39,6 @@ import { CommunityModule } from './server/community/community.module';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(SetCacheHeader).forRoutes('*');
+    consumer.apply(RequestTimeMiddleware).forRoutes('*');
   }
 }

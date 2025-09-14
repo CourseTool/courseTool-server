@@ -5,9 +5,10 @@ import { Between, LessThan, Repository } from 'typeorm';
 import { NewbornAqEntity } from '../../entities/newbornAq.entity';
 import { DormEntity } from '../../entities/dorm.entity';
 import { Student_listEntity } from '../../entities/student_list.entity';
-import { getDaysSinceYearStart, Time } from '../../utils/Time';
+import { COURSE_CONFIG, getDaysSinceYearStart, Time } from '../../utils/Time';
 import { AdvertisementEntity } from '../../entities/advertisement.entity';
 import { RedisService } from '../../redis/redis.service';
+// import aliOss from '../../utils/aliOss';
 
 @Injectable()
 export class CommonService {
@@ -25,11 +26,18 @@ export class CommonService {
     private readonly redisService: RedisService,
   ) {}
 
-  updateLog() {
-    return this.updateLogMapper
-      .createQueryBuilder()
-      .orderBy('id', 'DESC')
-      .getOne();
+  async updateLog() {
+    const cacheData = await this.redisService.get('updateLog');
+    if (!cacheData) {
+      const data = this.updateLogMapper
+        .createQueryBuilder()
+        .orderBy('id', 'DESC')
+        .getOne();
+      this.redisService.setex('updateLog', Time.ONE_HOUR * 24, data);
+      return data;
+    } else {
+      return cacheData;
+    }
   }
 
   message() {
@@ -505,25 +513,22 @@ export class CommonService {
 
   async config() {
     // 月份从零开始
-    const oldValue = await this.redisService.get('course-config');
-    if (oldValue) {
-      // @ts-ignore
-      return oldValue;
-    }
-    const config = {
-      start_date: '2024-09-01',
-      end_date: '2025-02-20',
-      start_month: 9,
-      start_day: 2,
-      disDay: 0,
-    };
-    config.disDay = getDaysSinceYearStart(config.start_date);
-    this.redisService.setex('course-config', Time.ONE_MONTH * 4, config);
-    return config;
+    // const oldValue = await this.redisService.get('course-config');
+    // if (oldValue) {
+    //   // @ts-ignore
+    //   return oldValue;
+    // }
+    this.redisService.setex('course-config', Time.ONE_MONTH * 4, COURSE_CONFIG);
+    return COURSE_CONFIG;
   }
 
   async advertisementImg() {
     let result = await this.advertisementMapper.find();
     return result.map((d) => d.img_url);
   }
+
+  // uploadImg(imgData: any) {
+  //   const res = aliOss.putOssFile(imgData.path);
+  //   return res;
+  // }
 }

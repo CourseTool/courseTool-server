@@ -11,15 +11,16 @@ import { CommunityModule } from './server/community/community.module';
 import { RequestTimeMiddleware } from './middleware/calcApiTimeMiddleware';
 import { AIModule } from './server/ai/ai.module';
 import { ECardModule } from './server/e-card/e-card.module';
+import { UserModule } from './server/user/user.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: '81.68.174.21',
+      host: '123.56.64.221',
       port: 3306,
       username: 'course',
-      password: '123456',
+      password: '050703',
       database: 'course',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       autoLoadEntities: true,
@@ -32,6 +33,7 @@ import { ECardModule } from './server/e-card/e-card.module';
     CommunityModule,
     AIModule,
     ECardModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

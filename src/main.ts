@@ -114,7 +114,9 @@ const httpsOptions = {
 };
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {});
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    // httpsOptions,
+  });
   app.useStaticAssets('public', {
     maxAge: '31536000',
   });

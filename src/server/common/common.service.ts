@@ -28,8 +28,15 @@ export class CommonService {
 
   async updateLog() {
     const cacheData = await this.redisService.get('updateLog');
+    console.log(cacheData);
+    console.log(
+      await this.updateLogMapper
+        .createQueryBuilder('update_log')
+        .orderBy('id', 'DESC')
+        .getOne(),
+    );
     if (!cacheData) {
-      const data = this.updateLogMapper
+      const data = await this.updateLogMapper
         .createQueryBuilder()
         .orderBy('id', 'DESC')
         .getOne();

@@ -11,7 +11,7 @@ const weekDayMap = {
 // 课表日期数据配置
 export const COURSE_CONFIG = {
   start_date: '2025-09-08',
-  end_date: '2025-02-10',
+  end_date: '2026-02-10',
   start_month: 9,
   start_day: 8,
   disDay: getDaysSinceYearStart('2025-09-08'),

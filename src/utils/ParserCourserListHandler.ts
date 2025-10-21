@@ -10,16 +10,29 @@ import { StudentCourseEntity } from '../entities/student-course.entity';
 import { ClassroomCourseEntity } from 'src/entities/classroomCourse.entity';
 
 interface Response<T> {
-  data: StudentCourseEntity | { courseList: any[]; };
+  data: StudentCourseEntity | { courseList: any[] };
 }
 
-function isCourseList(data: StudentCourseEntity | ClassroomCourseEntity): boolean {
+function isCourseList(
+  data: StudentCourseEntity | ClassroomCourseEntity,
+): boolean {
   return Object.keys(data).includes('courseList');
 }
 
 function parserCourseList(data: StudentCourseEntity, url: string) {
+  if (url.includes('ai')) {
+    return {
+      code: 200,
+      message: '请求成功',
+      data: data,
+    };
+  }
   if (data == null) {
-    if (url.includes('student') || url.includes('teacher') || url.includes('classroom')) {
+    if (
+      url.includes('student') ||
+      url.includes('teacher') ||
+      url.includes('classroom')
+    ) {
       return {
         code: 200,
         message: '请求成功',
@@ -55,7 +68,8 @@ function parserCourseList(data: StudentCourseEntity, url: string) {
 @Injectable()
 export class ResponseInterceptor<T>
   implements
-  NestInterceptor<StudentCourseEntity, Response<StudentCourseEntity>> {
+    NestInterceptor<StudentCourseEntity, Response<StudentCourseEntity>>
+{
   intercept(
     context: ExecutionContext,
     next: CallHandler<StudentCourseEntity>,
